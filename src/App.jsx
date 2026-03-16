@@ -144,6 +144,10 @@ function App() {
       <header>
         <h1 className="neon-title">SNS CLIPPER</h1>
         <p className="subtitle">爆速。無劣化。切り抜き動画の革命。</p>
+        <p className="seo-description" style={{ display: 'none' }}>
+          SNS切り抜きメーカーは、YouTubeやTikTok、インスタグラム向けの動画をブラウザ上で簡単に作成できる無料ツールです。
+          FFmpeg.wasmを使用して、動画をサーバーに送ることなく安全かつ高速に編集できます。
+        </p>
       </header>
 
       <main 
