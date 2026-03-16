@@ -139,7 +139,9 @@ function App() {
     ])
 
     const data = await ffmpeg.readFile(outputName)
-    const url = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }))
+    // Uint8Arrayを直接渡してバイナリコピーを確実に行う（SharedArrayBuffer由来の不具合回避）
+    const blob = new Blob([data], { type: 'video/mp4' })
+    const url = URL.createObjectURL(blob)
     setOutputUrl(url)
     setProcessing(false)
   }
@@ -271,11 +273,16 @@ function App() {
                   <a 
                     href={outputUrl} 
                     download="clipped_video.mp4" 
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="btn-primary" 
                     style={{ textDecoration: 'none', display: 'block', textAlign: 'center' }}
                   >
                     動画をダウンロード
                   </a>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '8px', textAlign: 'center' }}>
+                    ※iPhoneでダウンロードできない場合は、動画を長押しして「保存」または「共有」から保存してください
+                  </p>
                   <button 
                     onClick={() => { setOutputUrl(null); setVideoFile(null); }} 
                     style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', width: '100%', marginTop: '12px', cursor: 'pointer' }}
