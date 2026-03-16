@@ -16,6 +16,7 @@ function App() {
   const [startTimeSec, setStartTimeSec] = useState(0)
   const [endTimeSec, setEndTimeSec] = useState(10)
   const [videoUrl, setVideoUrl] = useState(null)
+  const [dragActive, setDragActive] = useState(false)
   
   const ffmpegRef = useRef(new FFmpeg())
   const videoRef = useRef(null)
@@ -84,9 +85,22 @@ function App() {
     }
   }
 
+  const handleDragOver = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(true)
+  }
+
+  const handleDragLeave = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
+  }
+
   const handleDrop = (e) => {
     e.preventDefault()
     e.stopPropagation()
+    setDragActive(false)
     const file = e.dataTransfer.files[0]
     if (file && file.type.startsWith('video/')) {
       if (videoUrl) URL.revokeObjectURL(videoUrl)
@@ -95,11 +109,6 @@ function App() {
       setVideoFile(file)
       setOutputUrl(null)
     }
-  }
-
-  const handleDragOver = (e) => {
-    e.preventDefault()
-    e.stopPropagation()
   }
 
   const transcode = async () => {
@@ -137,17 +146,18 @@ function App() {
         <p className="subtitle">爆速。無劣化。切り抜き動画の革命。</p>
       </header>
 
-      <main className="glass-panel">
+      <main 
+        className={`glass-panel ${dragActive ? 'drag-active' : ''}`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         {/* AdSense Top Placeholder */}
         <div className="ad-box-placeholder">ここにはディスプレイ広告が表示されます</div>
         
         {!videoFile ? (
           <div className="dropzone-container">
-            <label 
-              className="dropzone"
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-            >
+            <label className="dropzone">
               <input type="file" accept="video/*" onChange={handleFileChange} style={{ display: 'none' }} />
               <div className="dropzone-text">
                 <span style={{ fontSize: '3rem' }}>📁</span>
