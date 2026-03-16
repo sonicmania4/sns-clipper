@@ -89,6 +89,8 @@ body {
   display: grid;
   grid-template-columns: 1fr;
   gap: 24px;
+  max-width: 600px;
+  margin: 32px auto 0;
 }
 
 video {
@@ -178,6 +180,34 @@ video {
   color: var(--text-secondary);
   border-radius: 8px;
   margin-bottom: 20px;
+}
+
+.feature-toggle {
+  background: rgba(0, 242, 255, 0.05);
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  margin-bottom: 8px;
+}
+
+.switch-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.switch-label input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent-color);
+  cursor: pointer;
+}
+
+.switch-text {
+  color: var(--text-primary);
 }
 
 .btn-primary {

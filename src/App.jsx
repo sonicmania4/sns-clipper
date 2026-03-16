@@ -17,6 +17,7 @@ function App() {
   const [endTimeSec, setEndTimeSec] = useState(10)
   const [videoUrl, setVideoUrl] = useState(null)
   const [dragActive, setDragActive] = useState(false)
+  const [isVertical, setIsVertical] = useState(false)
   
   const ffmpegRef = useRef(new FFmpeg())
   const videoRef = useRef(null)
@@ -120,13 +121,17 @@ function App() {
 
     await ffmpeg.writeFile(inputName, await fetchFile(videoFile))
 
-    // FFmpegコマンド: 切り抜き
-    // -ss: 開始時間, -to: 終了時間, -c copy: 無劣化（高速）, -c:v libx264: 再エンコード（確実）
-    // 今回は使い勝手を優先し、再エンコードで確実な切り抜きを行う設定にします
+    // FFmpegコマンド: 切り抜き + (オプション) 縦型クロップ
+    // -ss: 開始時間, -to: 終了時間, -c:v libx264: 再エンコード（確実）
+    const filterArgs = isVertical 
+      ? ['-vf', 'crop=ih*9/16:ih'] 
+      : []
+
     await ffmpeg.exec([
       '-i', inputName,
       '-ss', formatTime(startTimeSec),
       '-to', formatTime(endTimeSec),
+      ...filterArgs,
       '-c:v', 'libx264',
       '-preset', 'ultrafast',
       '-c:a', 'aac',
@@ -221,6 +226,17 @@ function App() {
                     }}
                   ></div>
                 </div>
+              </div>
+
+              <div className="feature-toggle">
+                <label className="switch-label">
+                  <input 
+                    type="checkbox" 
+                    checked={isVertical} 
+                    onChange={(e) => setIsVertical(e.target.checked)} 
+                  />
+                  <span className="switch-text">📱 TikTok/Shorts向けに縦動画(9:16)にする</span>
+                </label>
               </div>
 
               {!processing && !outputUrl && (
