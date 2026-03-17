@@ -214,8 +214,8 @@ function App() {
           // タイムスタンプを切り抜き後の時間（0から開始）に調整
           const start = Math.max(0, c.timestamp[0] - startTimeSec)
           const end = (c.timestamp[1] || c.timestamp[0] + 2) - startTimeSec
-          // 黄色い文字に太い黒縁（SNSで定番のスタイル）
-          return `drawtext=fontfile=${fontName}:text='${text}':fontsize=44:fontcolor=yellow:borderw=5:bordercolor=black:x=(w-text_w)/2:y=h-120:enable='between(t,${start.toFixed(2)},${end.toFixed(2)})'`
+          // プレミアムな字幕スタイル: 黄色い文字 + 黒い半透明背景ボックス
+          return `drawtext=fontfile=${fontName}:text='${text}':fontsize=46:fontcolor=yellow:box=1:boxcolor=black@0.6:boxborderw=10:x=(w-text_w)/2:y=h-140:enable='between(t,${start.toFixed(2)},${end.toFixed(2)})'`
         }).join(',')
       
       if (drawTexts) {
@@ -348,10 +348,10 @@ function App() {
                       checked={transcribeEnabled} 
                       onChange={(e) => setTranscribeEnabled(e.target.checked)} 
                     />
-                    <span className="switch-text">🤖 AI自動文字起こし & 字幕を入れる</span>
+                    <span className="switch-text">🤖 デバイス内AIで自動文字起こし & 字幕</span>
                   </label>
                   {transcribeEnabled && !captions.length && (
-                    <button className="btn-small" onClick={transcribeAudio}>解析開始</button>
+                    <button className="btn-small" onClick={transcribeAudio}>解析開始 (完全無料・API不要)</button>
                   )}
                 </div>
                 {transcriptionStatus && (
