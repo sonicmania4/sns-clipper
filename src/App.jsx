@@ -195,16 +195,24 @@ function App() {
     let filterArgs = isVertical ? ['-vf', `crop=ih*9/16:ih`] : []
 
     if (transcribeEnabled && captions.length > 0) {
-      // 字幕フィルターの構成
-      const drawTexts = captions.map(c => {
-        const text = c.text.replace(/'/g, '').replace(/:/g, '\\:')
-        const start = c.timestamp[0]
-        const end = c.timestamp[1] || start + 2
-        return `drawtext=fontfile=${fontName}:text='${text}':fontsize=48:fontcolor=white:borderw=4:bordercolor=black:x=(w-text_w)/2:y=h-100:enable='between(t,${start},${end})'`
-      }).join(',')
+      // 字幕フィルターの構成（再生開始時間を考慮して時間をずらす）
+      const drawTexts = captions
+        .filter(c => {
+          const end = c.timestamp[1] || c.timestamp[0] + 2
+          return end > startTimeSec && c.timestamp[0] < endTimeSec
+        })
+        .map(c => {
+          const text = c.text.trim().replace(/'/g, '').replace(/:/g, '\\:')
+          // タイムスタンプを切り抜き後の時間（0から開始）に調整
+          const start = Math.max(0, c.timestamp[0] - startTimeSec)
+          const end = (c.timestamp[1] || c.timestamp[0] + 2) - startTimeSec
+          return `drawtext=fontfile=${fontName}:text='${text}':fontsize=48:fontcolor=white:borderw=4:bordercolor=black:x=(w-text_w)/2:y=h-100:enable='between(t,${start.toFixed(2)},${end.toFixed(2)})'`
+        }).join(',')
       
-      const currentFilter = filterArgs.length > 0 ? filterArgs[1] + ',' : ''
-      filterArgs = ['-vf', currentFilter + drawTexts]
+      if (drawTexts) {
+        const currentFilter = filterArgs.length > 0 ? filterArgs[1] + ',' : ''
+        filterArgs = ['-vf', currentFilter + drawTexts]
+      }
     }
 
     await ffmpeg.exec([
