@@ -18,9 +18,36 @@ function App() {
   const [videoUrl, setVideoUrl] = useState(null)
   const [dragActive, setDragActive] = useState(false)
   const [isVertical, setIsVertical] = useState(false)
+  const [transcribeEnabled, setTranscribeEnabled] = useState(false)
+  const [transcriptionStatus, setTranscriptionStatus] = useState('')
+  const [captions, setCaptions] = useState([])
   
   const ffmpegRef = useRef(new FFmpeg())
   const videoRef = useRef(null)
+  const workerRef = useRef(null)
+
+  useEffect(() => {
+    // Workerの初期化
+    workerRef.current = new Worker(new URL('./transcriptionWorker.js', import.meta.url), {
+      type: 'module'
+    })
+
+    workerRef.current.onmessage = (e) => {
+      const { status, message, result } = e.data
+      if (status === 'loading' || status === 'processing' || status === 'ready') {
+        setTranscriptionStatus(message)
+      } else if (status === 'done') {
+        setTranscriptionStatus('文字起こし完了！')
+        setCaptions(result.chunks)
+      } else if (status === 'error') {
+        setTranscriptionStatus(`エラー: ${message}`)
+      }
+    }
+
+    return () => {
+      workerRef.current.terminate()
+    }
+  }, [])
 
   const load = async () => {
     const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm'
@@ -86,6 +113,35 @@ function App() {
     }
   }
 
+  const transcribeAudio = async () => {
+    if (!videoFile) return
+    setTranscriptionStatus('音声データ抽出中...')
+    const ffmpeg = ffmpegRef.current
+    const inputName = 'input.mp4'
+    const audioName = 'audio.wav'
+
+    await ffmpeg.writeFile(inputName, await fetchFile(videoFile))
+    
+    // AI解析用に16kHzのWAVを抽出
+    await ffmpeg.exec([
+      '-i', inputName,
+      '-ar', '16000',
+      '-ac', '1',
+      audioName
+    ])
+
+    const data = await ffmpeg.readFile(audioName)
+    const audioBlob = new Blob([data.buffer], { type: 'audio/wav' })
+    
+    // AudioBufferに変換してWorkerに送信
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+    const arrayBuffer = await audioBlob.arrayBuffer()
+    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
+    const float32Data = audioBuffer.getChannelData(0)
+
+    workerRef.current.postMessage({ audio: float32Data })
+  }
+
   const handleDragOver = (e) => {
     e.preventDefault()
     e.stopPropagation()
@@ -118,14 +174,31 @@ function App() {
     const ffmpeg = ffmpegRef.current
     const inputName = 'input.mp4'
     const outputName = 'output.mp4'
+    const fontName = 'font.ttf'
 
     await ffmpeg.writeFile(inputName, await fetchFile(videoFile))
 
-    // FFmpegコマンド: 切り抜き + (オプション) 縦型クロップ
-    // -ss: 開始時間, -to: 終了時間, -c:v libx264: 再エンコード（確実）
-    const filterArgs = isVertical 
-      ? ['-vf', 'crop=ih*9/16:ih'] 
-      : []
+    // フォントのロード（日本語表示に必須）
+    setTranscriptionStatus('フォント準備中...')
+    const fontResponse = await fetch('https://raw.githubusercontent.com/googlefonts/noto-fonts/main/hinted/ttf/NotoSans/NotoSans-Bold.ttf')
+    const fontData = await fontResponse.arrayBuffer()
+    await ffmpeg.writeFile(fontName, new Uint8Array(fontData))
+
+    // FFmpegコマンド: 切り抜き + (オプション) 縦型クロップ + (オプション) 字幕
+    let filterArgs = isVertical ? ['-vf', `crop=ih*9/16:ih`] : []
+
+    if (transcribeEnabled && captions.length > 0) {
+      // 字幕フィルターの構成
+      const drawTexts = captions.map(c => {
+        const text = c.text.replace(/'/g, '').replace(/:/g, '\\:')
+        const start = c.timestamp[0]
+        const end = c.timestamp[1] || start + 2
+        return `drawtext=fontfile=${fontName}:text='${text}':fontsize=48:fontcolor=white:borderw=4:bordercolor=black:x=(w-text_w)/2:y=h-100:enable='between(t,${start},${end})'`
+      }).join(',')
+      
+      const currentFilter = filterArgs.length > 0 ? filterArgs[1] + ',' : ''
+      filterArgs = ['-vf', currentFilter + drawTexts]
+    }
 
     await ffmpeg.exec([
       '-i', inputName,
@@ -239,6 +312,35 @@ function App() {
                   />
                   <span className="switch-text">📱 TikTok/Shorts向けに縦動画(9:16)にする</span>
                 </label>
+              </div>
+
+              <div className="feature-toggle transcription-panel">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: transcriptionStatus ? '12px' : '0' }}>
+                  <label className="switch-label">
+                    <input 
+                      type="checkbox" 
+                      checked={transcribeEnabled} 
+                      onChange={(e) => setTranscribeEnabled(e.target.checked)} 
+                    />
+                    <span className="switch-text">🤖 AI自動文字起こし & 字幕を入れる</span>
+                  </label>
+                  {transcribeEnabled && !captions.length && (
+                    <button className="btn-small" onClick={transcribeAudio}>解析開始</button>
+                  )}
+                </div>
+                {transcriptionStatus && (
+                  <div className="transcription-status">
+                    <span className="pulse-dot"></span> {transcriptionStatus}
+                  </div>
+                )}
+                {captions.length > 0 && transcribeEnabled && (
+                  <div className="caption-preview">
+                    {captions.slice(0, 3).map((c, i) => (
+                      <div key={i} className="caption-tag">{c.text}</div>
+                    ))}
+                    {captions.length > 3 && <span>...</span>}
+                  </div>
+                )}
               </div>
 
               {!processing && !outputUrl && (
