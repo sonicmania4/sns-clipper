@@ -40,8 +40,14 @@ function App() {
         setTranscriptionStatus('文字起こし完了！')
         setCaptions(result.chunks)
       } else if (status === 'error') {
+        console.error('Transcription Worker Error:', message)
         setTranscriptionStatus(`エラー: ${message}`)
       }
+    }
+
+    workerRef.current.onerror = (e) => {
+      console.error('Worker Fatal Error:', e)
+      setTranscriptionStatus('Workerエラーが発生しました。ブラウザのコンソールを確認してください。')
     }
 
     return () => {
@@ -139,6 +145,7 @@ function App() {
     const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
     const float32Data = audioBuffer.getChannelData(0)
 
+    console.log('Sending audio to worker, length:', float32Data.length)
     workerRef.current.postMessage({ audio: float32Data })
   }
 

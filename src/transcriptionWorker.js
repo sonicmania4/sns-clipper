@@ -13,9 +13,16 @@ self.onmessage = async (e) => {
         if (!transcriber) {
             self.postMessage({ status: 'loading', message: 'AIモデルをロード中...' });
             transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny', {
-                device: 'webgpu', // WebGPUが利用可能な場合は使用
+                progress_callback: (p) => {
+                    if (p.status === 'progress') {
+                        self.postMessage({ 
+                            status: 'loading', 
+                            message: `AIモデルをダウンロード中... ${Math.round(p.progress)}%` 
+                        });
+                    }
+                }
             });
-            self.postMessage({ status: 'ready', message: 'モデルのロードが完了しました' });
+            self.postMessage({ status: 'ready', message: 'モデルの準備が整いました' });
         }
 
         self.postMessage({ status: 'processing', message: '音声解析中...' });
