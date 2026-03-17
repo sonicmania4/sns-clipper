@@ -37,6 +37,7 @@ self.onmessage = async (e) => {
 
         self.postMessage({ status: 'done', result });
     } catch (error) {
+        console.error('Worker Error:', error);
         self.postMessage({ status: 'error', message: error.message });
     }
 };

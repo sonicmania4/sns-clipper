@@ -186,9 +186,11 @@ function App() {
     await ffmpeg.writeFile(inputName, await fetchFile(videoFile))
 
     // フォントのロード（日本語表示に必須）
-    setTranscriptionStatus('フォント準備中...')
-    const fontResponse = await fetch('https://raw.githubusercontent.com/googlefonts/noto-fonts/main/hinted/ttf/NotoSans/NotoSans-Bold.ttf')
-    const fontData = await fontResponse.arrayBuffer()
+    setTranscriptionStatus('フォント(日本語対応)を準備中...')
+    // 軽量な日本語フォント (M PLUS 1p) を使用
+    const fontUrl = 'https://fonts.gstatic.com/s/mplus1p/v41/mt-997G_S7HNP7Bpxv0U.ttf' 
+    const res = await fetch(fontUrl)
+    const fontData = await res.arrayBuffer()
     await ffmpeg.writeFile(fontName, new Uint8Array(fontData))
 
     // FFmpegコマンド: 切り抜き + (オプション) 縦型クロップ + (オプション) 字幕
@@ -202,11 +204,16 @@ function App() {
           return end > startTimeSec && c.timestamp[0] < endTimeSec
         })
         .map(c => {
-          const text = c.text.trim().replace(/'/g, '').replace(/:/g, '\\:')
+          const text = c.text.trim()
+            .replace(/'/g, "") // FFmpeg escaping
+            .replace(/:/g, "\\:")
+            .replace(/,/g, "\\,")
+            .replace(/;/g, "\\;")
           // タイムスタンプを切り抜き後の時間（0から開始）に調整
           const start = Math.max(0, c.timestamp[0] - startTimeSec)
           const end = (c.timestamp[1] || c.timestamp[0] + 2) - startTimeSec
-          return `drawtext=fontfile=${fontName}:text='${text}':fontsize=48:fontcolor=white:borderw=4:bordercolor=black:x=(w-text_w)/2:y=h-100:enable='between(t,${start.toFixed(2)},${end.toFixed(2)})'`
+          // 黄色い文字に太い黒縁（SNSで定番のスタイル）
+          return `drawtext=fontfile=${fontName}:text='${text}':fontsize=44:fontcolor=yellow:borderw=5:bordercolor=black:x=(w-text_w)/2:y=h-120:enable='between(t,${start.toFixed(2)},${end.toFixed(2)})'`
         }).join(',')
       
       if (drawTexts) {
@@ -214,6 +221,8 @@ function App() {
         filterArgs = ['-vf', currentFilter + drawTexts]
       }
     }
+
+    console.log('Final FFmpeg Filter Args:', filterArgs)
 
     await ffmpeg.exec([
       '-i', inputName,
