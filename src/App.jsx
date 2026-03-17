@@ -121,32 +121,34 @@ function App() {
 
   const transcribeAudio = async () => {
     if (!videoFile) return
-    setTranscriptionStatus('音声データ抽出中...')
-    const ffmpeg = ffmpegRef.current
-    const inputName = 'input.mp4'
-    const audioName = 'audio.wav'
-
-    await ffmpeg.writeFile(inputName, await fetchFile(videoFile))
+    setTranscriptionStatus('音声解析の準備中...')
     
-    // AI解析用に16kHzのWAVを抽出
-    await ffmpeg.exec([
-      '-i', inputName,
-      '-ar', '16000',
-      '-ac', '1',
-      audioName
-    ])
+    try {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+      const arrayBuffer = await videoFile.arrayBuffer()
+      
+      setTranscriptionStatus('音声データをデコード中...')
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
+      
+      // Whisper用に16kHzにリサンプリング
+      setTranscriptionStatus('サンプリングレートを調整中...')
+      const offlineCtx = new OfflineAudioContext(1, audioBuffer.duration * 16000, 16000)
+      const source = offlineCtx.createBufferSource()
+      source.buffer = audioBuffer
+      source.connect(offlineCtx.destination)
+      source.start()
+      
+      const resampledBuffer = await offlineCtx.startRendering()
+      const float32Data = resampledBuffer.getChannelData(0)
 
-    const data = await ffmpeg.readFile(audioName)
-    const audioBlob = new Blob([data.buffer], { type: 'audio/wav' })
-    
-    // AudioBufferに変換してWorkerに送信
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)()
-    const arrayBuffer = await audioBlob.arrayBuffer()
-    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
-    const float32Data = audioBuffer.getChannelData(0)
+      console.log('Sending resampled audio to worker:', float32Data.length)
+      setTranscriptionStatus('AIによる文字起こしを開始...')
+      workerRef.current.postMessage({ audio: float32Data })
 
-    console.log('Sending audio to worker, length:', float32Data.length)
-    workerRef.current.postMessage({ audio: float32Data })
+    } catch (err) {
+      console.error('Transcription extraction error:', err)
+      setTranscriptionStatus('エラー: 音声の抽出に失敗しました。')
+    }
   }
 
   const handleDragOver = (e) => {
