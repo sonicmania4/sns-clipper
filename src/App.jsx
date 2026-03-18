@@ -1,10 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
-import { FFmpeg } from '@ffmpeg/ffmpeg'
-import { fetchFile, toBlobURL } from '@ffmpeg/util'
 import './index.css'
 
 function App() {
-  const [loaded, setLoaded] = useState(false)
+  const [loaded, setLoaded] = useState(true)
   const [videoFile, setVideoFile] = useState(null)
   const [startTime, setStartTime] = useState('00:00:00')
   const [endTime, setEndTime] = useState('00:00:10')
@@ -22,62 +20,10 @@ function App() {
   const [transcriptionStatus, setTranscriptionStatus] = useState('')
   const [captions, setCaptions] = useState([])
   
-  const ffmpegRef = useRef(new FFmpeg())
+  const [captionStyle, setCaptionStyle] = useState('classic')
+  
   const videoRef = useRef(null)
-  const workerRef = useRef(null)
 
-  useEffect(() => {
-    // Workerの初期化
-    workerRef.current = new Worker(new URL('./transcriptionWorker.js', import.meta.url), {
-      type: 'module'
-    })
-
-    workerRef.current.onmessage = (e) => {
-      const { status, message, result } = e.data
-      if (status === 'loading' || status === 'processing' || status === 'ready') {
-        setTranscriptionStatus(message)
-      } else if (status === 'done') {
-        setTranscriptionStatus('文字起こし完了！')
-        setCaptions(result.chunks)
-      } else if (status === 'error') {
-        console.error('Transcription Worker Error:', message)
-        setTranscriptionStatus(`エラー: ${message}`)
-      }
-    }
-
-    workerRef.current.onerror = (e) => {
-      console.error('Worker Fatal Error:', e)
-      setTranscriptionStatus('Workerエラーが発生しました。ブラウザのコンソールを確認してください。')
-    }
-
-    return () => {
-      workerRef.current.terminate()
-    }
-  }, [])
-
-  const load = async () => {
-    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm'
-    const ffmpeg = ffmpegRef.current
-    
-    ffmpeg.on('log', ({ message }) => {
-      setLogs((prev) => [...prev.slice(-10), message])
-      console.log(message)
-    })
-
-    ffmpeg.on('progress', ({ progress }) => {
-      setProgress(Math.round(progress * 100))
-    })
-
-    await ffmpeg.load({
-      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
-      wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
-    })
-    setLoaded(true)
-  }
-
-  useEffect(() => {
-    load()
-  }, [])
 
   const handleFileChange = (e) => {
     const file = e.target.files[0]
@@ -87,6 +33,9 @@ function App() {
       setVideoUrl(url)
       setVideoFile(file)
       setOutputUrl(null)
+      setCaptions([])
+      setTranscriptionStatus('')
+      setServerFilename(null)
       // Reset times
       setStartTimeSec(0)
       setEndTimeSec(10)
@@ -107,48 +56,80 @@ function App() {
     return date.toISOString().substr(11, 8)
   }
 
-  const setStartToCurrent = () => {
-    if (videoRef.current) {
-      setStartTimeSec(videoRef.current.currentTime)
-    }
-  }
+  const [serverFilename, setServerFilename] = useState(null)
 
-  const setEndToCurrent = () => {
-    if (videoRef.current) {
-      setEndTimeSec(videoRef.current.currentTime)
-    }
+  const uploadWithProgress = (file) => {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest()
+      const formData = new FormData()
+      formData.append('video', file)
+
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+          const percent = Math.round((e.loaded / e.total) * 100)
+          setProgress(percent)
+          setTranscriptionStatus(`アップロード中... ${percent}%`)
+        }
+      })
+
+      xhr.addEventListener('load', () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(JSON.parse(xhr.responseText))
+        } else {
+          reject(new Error('アップロード失敗'))
+        }
+      })
+
+      xhr.addEventListener('error', () => reject(new Error('ネットワークエラー')))
+      xhr.open('POST', 'http://localhost:3001/api/upload')
+      xhr.send(formData)
+    })
   }
 
   const transcribeAudio = async () => {
     if (!videoFile) return
     setTranscriptionStatus('音声解析の準備中...')
+    setCaptions([])
+    setProgress(0)
     
     try {
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)()
-      const arrayBuffer = await videoFile.arrayBuffer()
+      let filename = serverFilename
       
-      setTranscriptionStatus('音声データをデコード中...')
-      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
-      
-      // Whisper用に16kHzにリサンプリング
-      setTranscriptionStatus('サンプリングレートを調整中...')
-      const offlineCtx = new OfflineAudioContext(1, audioBuffer.duration * 16000, 16000)
-      const source = offlineCtx.createBufferSource()
-      source.buffer = audioBuffer
-      source.connect(offlineCtx.destination)
-      source.start()
-      
-      const resampledBuffer = await offlineCtx.startRendering()
-      const float32Data = resampledBuffer.getChannelData(0)
+      if (!filename) {
+        const data = await uploadWithProgress(videoFile)
+        filename = data.filename
+        setServerFilename(filename)
+      }
 
-      console.log('Sending resampled audio to worker:', float32Data.length)
-      setTranscriptionStatus('AIによる文字起こしを開始...')
-      workerRef.current.postMessage({ audio: float32Data })
+      setTranscriptionStatus('サーバーでAI文字起こしを実行中... (数分かかる場合があります)')
+      const transcribeRes = await fetch('http://localhost:3001/api/transcribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename })
+      })
+
+      if (!transcribeRes.ok) throw new Error('文字起こしに失敗しました。ファイルが大きすぎる可能性があります。')
+      const { chunks } = await transcribeRes.json()
+
+      const cleanChunks = chunks
+        .filter(c => c.text.trim())
+        .map(c => ({ ...c, text: c.text.trim() }))
+      
+      setCaptions(cleanChunks)
+      setTranscriptionStatus('文字起こし完了！(テロップを編集できます)')
 
     } catch (err) {
-      console.error('Transcription extraction error:', err)
-      setTranscriptionStatus('エラー: 音声の抽出に失敗しました。')
+      console.error('Transcription error:', err)
+      setTranscriptionStatus(`エラー: ${err.message}`)
+    } finally {
+      setProgress(100)
     }
+  }
+
+  const updateCaption = (index, newText) => {
+    const updated = [...captions]
+    updated[index].text = newText
+    setCaptions(updated)
   }
 
   const handleDragOver = (e) => {
@@ -174,75 +155,56 @@ function App() {
       setVideoUrl(url)
       setVideoFile(file)
       setOutputUrl(null)
+      setCaptions([])
+      setTranscriptionStatus('')
+      setServerFilename(null)
     }
   }
 
   const transcode = async () => {
+    if (!videoFile) return
     setProcessing(true)
     setProgress(0)
-    const ffmpeg = ffmpegRef.current
-    const inputName = 'input.mp4'
-    const outputName = 'output.mp4'
-    const fontName = 'font.ttf'
+    setTranscriptionStatus('準備中...')
 
-    await ffmpeg.writeFile(inputName, await fetchFile(videoFile))
-
-    // フォントのロード（日本語表示に必須）
-    setTranscriptionStatus('フォント(日本語対応)を準備中...')
-    // 軽量な日本語フォント (M PLUS 1p) を使用
-    const fontUrl = 'https://fonts.gstatic.com/s/mplus1p/v41/mt-997G_S7HNP7Bpxv0U.ttf' 
-    const res = await fetch(fontUrl)
-    const fontData = await res.arrayBuffer()
-    await ffmpeg.writeFile(fontName, new Uint8Array(fontData))
-
-    // FFmpegコマンド: 切り抜き + (オプション) 縦型クロップ + (オプション) 字幕
-    let filterArgs = isVertical ? ['-vf', `crop=ih*9/16:ih`] : []
-
-    if (transcribeEnabled && captions.length > 0) {
-      // 字幕フィルターの構成（再生開始時間を考慮して時間をずらす）
-      const drawTexts = captions
-        .filter(c => {
-          const end = c.timestamp[1] || c.timestamp[0] + 2
-          return end > startTimeSec && c.timestamp[0] < endTimeSec
-        })
-        .map(c => {
-          const text = c.text.trim()
-            .replace(/'/g, "") // FFmpeg escaping
-            .replace(/:/g, "\\:")
-            .replace(/,/g, "\\,")
-            .replace(/;/g, "\\;")
-          // タイムスタンプを切り抜き後の時間（0から開始）に調整
-          const start = Math.max(0, c.timestamp[0] - startTimeSec)
-          const end = (c.timestamp[1] || c.timestamp[0] + 2) - startTimeSec
-          // プレミアムな字幕スタイル: 黄色い文字 + 黒い半透明背景ボックス
-          return `drawtext=fontfile=${fontName}:text='${text}':fontsize=46:fontcolor=yellow:box=1:boxcolor=black@0.6:boxborderw=10:x=(w-text_w)/2:y=h-140:enable='between(t,${start.toFixed(2)},${end.toFixed(2)})'`
-        }).join(',')
+    try {
+      let filename = serverFilename
       
-      if (drawTexts) {
-        const currentFilter = filterArgs.length > 0 ? filterArgs[1] + ',' : ''
-        filterArgs = ['-vf', currentFilter + drawTexts]
+      if (!filename) {
+        const data = await uploadWithProgress(videoFile)
+        filename = data.filename
+        setServerFilename(filename)
       }
+
+      setTranscriptionStatus('サーバーで動画を書き出し中... (高画質レンダリングを実行しています)')
+      const processRes = await fetch('http://localhost:3001/api/process', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filename,
+          startTime: startTimeSec,
+          endTime: endTimeSec,
+          isVertical,
+          captions: transcribeEnabled ? captions : [],
+          captionStyle
+        })
+      })
+
+      if (!processRes.ok) {
+        const errorText = await processRes.text()
+        throw new Error(`サーバー処理エラー: ${errorText || '不明なエラー'}`)
+      }
+      const { outputUrl } = await processRes.json()
+
+      setOutputUrl(outputUrl)
+      setTranscriptionStatus('処理完了！(動画を保存できます)')
+    } catch (err) {
+      console.error('Processing error:', err)
+      setTranscriptionStatus(`エラー: ${err.message}`)
+    } finally {
+      setProcessing(false)
+      setProgress(100)
     }
-
-    console.log('Final FFmpeg Filter Args:', filterArgs)
-
-    await ffmpeg.exec([
-      '-i', inputName,
-      '-ss', formatTime(startTimeSec),
-      '-to', formatTime(endTimeSec),
-      ...filterArgs,
-      '-c:v', 'libx264',
-      '-preset', 'ultrafast',
-      '-c:a', 'aac',
-      outputName
-    ])
-
-    const data = await ffmpeg.readFile(outputName)
-    // Uint8Arrayを直接渡してバイナリコピーを確実に行う（SharedArrayBuffer由来の不具合回避）
-    const blob = new Blob([data], { type: 'video/mp4' })
-    const url = URL.createObjectURL(blob)
-    setOutputUrl(url)
-    setProcessing(false)
   }
 
   return (
@@ -250,11 +212,35 @@ function App() {
       <header>
         <h1 className="neon-title">SNS CLIPPER</h1>
         <p className="subtitle">爆速。無劣化。切り抜き動画の革命。</p>
-        <p className="seo-description" style={{ display: 'none' }}>
-          SNS切り抜きメーカーは、YouTubeやTikTok、インスタグラム向けの動画をブラウザ上で簡単に作成できる無料ツールです。
-          FFmpeg.wasmを使用して、動画をサーバーに送ることなく安全かつ高速に編集できます。
-        </p>
       </header>
+
+      <div className="flex justify-center mb-8">
+        <div className="glass-panel" style={{ padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+          <a
+            href="https://px.a8.net/svt/ejp?a8mat=4AZHWD+DGMV76+1WP2+6F9M9"
+            rel="nofollow noopener noreferrer"
+            target="_blank"
+          >
+            <img
+              border="0"
+              width="165"
+              height="120"
+              alt=""
+              src="https://www27.a8.net/svt/bgt?aid=260317021814&wid=001&eno=01&mid=s00000008903001079000&mc=1"
+              style={{ borderRadius: '8px' }}
+            />
+          </a>
+          <img
+            border="0"
+            width="1"
+            height="1"
+            src="https://www11.a8.net/0.gif?a8mat=4AZHWD+DGMV76+1WP2+6F9M9"
+            alt=""
+            style={{ position: 'absolute', opacity: 0 }}
+          />
+          <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em' }}>ADVERTISEMENT</span>
+        </div>
+      </div>
 
       <main 
         className={`glass-panel ${dragActive ? 'drag-active' : ''}`}
@@ -262,16 +248,13 @@ function App() {
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        {/* AdSense Top Placeholder */}
-        <div className="ad-box-placeholder">ここにはディスプレイ広告が表示されます</div>
-        
         {!videoFile ? (
           <div className="dropzone-container">
             <label className="dropzone">
               <input type="file" accept="video/*" onChange={handleFileChange} style={{ display: 'none' }} />
               <div className="dropzone-text">
                 <span style={{ fontSize: '3rem' }}>📁</span>
-                <h3>動画ファイルをアップロード</h3>
+                <h3 style={{ marginTop: '16px' }}>動画ファイルをアップロード</h3>
                 <p>または、ここにファイルをドラッグ＆ドロップ</p>
               </div>
             </label>
@@ -341,30 +324,68 @@ function App() {
               </div>
 
               <div className="feature-toggle transcription-panel">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: transcriptionStatus ? '12px' : '0' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: (transcriptionStatus || captions.length > 0) ? '20px' : '0' }}>
                   <label className="switch-label">
                     <input 
                       type="checkbox" 
                       checked={transcribeEnabled} 
                       onChange={(e) => setTranscribeEnabled(e.target.checked)} 
                     />
-                    <span className="switch-text">🤖 デバイス内AIで自動文字起こし & 字幕</span>
+                    <span className="switch-text">🤖 AI自動文字起こし & 字幕</span>
                   </label>
                   {transcribeEnabled && !captions.length && (
-                    <button className="btn-small" onClick={transcribeAudio}>解析開始 (完全無料・API不要)</button>
+                    <button className="btn-small" onClick={transcribeAudio}>解析開始 (サーバーAI)</button>
                   )}
                 </div>
+                
                 {transcriptionStatus && (
                   <div className="transcription-status">
                     <span className="pulse-dot"></span> {transcriptionStatus}
                   </div>
                 )}
+
                 {captions.length > 0 && transcribeEnabled && (
-                  <div className="caption-preview">
-                    {captions.slice(0, 3).map((c, i) => (
-                      <div key={i} className="caption-tag">{c.text}</div>
-                    ))}
-                    {captions.length > 3 && <span>...</span>}
+                  <div className="caption-editor">
+                    <h4 style={{ marginBottom: '16px', color: 'var(--accent-color)' }}>字幕スタイル選択</h4>
+                    <div className="style-selector">
+                      {[
+                        { id: 'classic', name: 'Classic', previewColor: 'preview-classic' },
+                        { id: 'premium', name: 'Premium', previewColor: 'preview-premium' },
+                        { id: 'neon', name: 'Neon', previewColor: 'preview-neon' },
+                        { id: 'impact', name: 'Impact', previewColor: 'preview-impact' }
+                      ].map(style => (
+                        <label key={style.id} className="style-option">
+                          <input 
+                            type="radio" 
+                            name="captionStyle" 
+                            value={style.id} 
+                            checked={captionStyle === style.id}
+                            onChange={(e) => setCaptionStyle(e.target.value)}
+                          />
+                          <div className="style-card">
+                            <span className={`style-preview ${style.previewColor}`}>ABC</span>
+                            <span className="style-name">{style.name}</span>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+
+                    <h4 style={{ margin: '24px 0 12px', color: 'var(--accent-color)' }}>字幕テキストの編集</h4>
+                    <div className="caption-list">
+                      {captions.map((c, i) => (
+                        <div key={i} className="caption-item">
+                          <div className="caption-time">
+                            {c.timestamp[0].toFixed(1)}s - {(c.timestamp[1] || c.timestamp[0] + 2).toFixed(1)}s
+                          </div>
+                          <input 
+                            type="text" 
+                            className="caption-input"
+                            value={c.text}
+                            onChange={(e) => updateCaption(i, e.target.value)}
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
@@ -384,7 +405,7 @@ function App() {
                   <div className="progress-bar">
                     <div className="progress-fill" style={{ width: `${progress}%` }}></div>
                   </div>
-                  <p style={{ textAlign: 'center', marginTop: '8px' }}>処理中... {progress}%</p>
+                  <p style={{ textAlign: 'center', marginTop: '12px', fontWeight: 'bold' }}>処理中... {progress}%</p>
                   <div className="log-box">
                     {logs.map((log, i) => <div key={i}>{log}</div>)}
                   </div>
@@ -392,28 +413,21 @@ function App() {
               )}
 
               {outputUrl && (
-                <div className="output-container">
-                  <h3 style={{ marginBottom: '12px' }}>✨ 完成しました！</h3>
-                  <video src={outputUrl} controls style={{ marginBottom: '16px' }} />
-                  {/* AdSense Output Placeholder */}
-                  <div className="ad-box-placeholder" style={{ margin: '20px 0' }}>ここに広告を配置して収益化</div>
+                <div className="output-container glass-panel" style={{ marginTop: '20px', background: 'rgba(0, 242, 255, 0.05)' }}>
+                  <h3 style={{ marginBottom: '16px', textAlign: 'center' }}>✨ 動画が完成しました！</h3>
+                  <video src={outputUrl} controls style={{ marginBottom: '20px' }} />
                   
                   <a 
                     href={outputUrl} 
                     download="clipped_video.mp4" 
-                    target="_blank"
-                    rel="noopener noreferrer"
                     className="btn-primary" 
                     style={{ textDecoration: 'none', display: 'block', textAlign: 'center' }}
                   >
-                    動画をダウンロード
+                    動画を保存する
                   </a>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '8px', textAlign: 'center' }}>
-                    ※iPhoneでダウンロードできない場合は、動画を長押しして「保存」または「共有」から保存してください
-                  </p>
                   <button 
                     onClick={() => { setOutputUrl(null); setVideoFile(null); }} 
-                    style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', width: '100%', marginTop: '12px', cursor: 'pointer' }}
+                    style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', width: '100%', marginTop: '16px', cursor: 'pointer', fontSize: '0.9rem' }}
                   >
                     別の動画を編集する
                   </button>
@@ -424,8 +438,9 @@ function App() {
         )}
       </main>
 
-      <footer style={{ marginTop: '40px', textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-        <p>© 2026 SNS Clipper. Built with FFmpeg.wasm.</p>
+      <footer style={{ marginTop: '60px', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+        <p>© 2026 SNS Clipper Pro - Local Backend Mode</p>
+        <p style={{ marginTop: '4px' }}>長尺動画対応：ローカルサーバーで高速かつ安定した処理（AI文字起こし・編集）を実行中。</p>
       </footer>
     </div>
   )
