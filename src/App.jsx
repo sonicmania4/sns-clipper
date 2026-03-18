@@ -438,10 +438,103 @@ function App() {
         )}
       </main>
 
-      <footer style={{ marginTop: '60px', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-        <p>© 2026 SNS Clipper Pro - Local Backend Mode</p>
-        <p style={{ marginTop: '4px' }}>長尺動画対応：ローカルサーバーで高速かつ安定した処理（AI文字起こし・編集）を実行中。</p>
+
+      <footer style={{ marginTop: '60px' }}>
+        {/* ── Sponsor Section ── */}
+        <div style={{
+          borderTop: '1px solid rgba(255,255,255,0.08)',
+          paddingTop: '40px',
+          paddingBottom: '40px',
+          textAlign: 'center',
+        }}>
+          <p style={{
+            fontSize: '11px',
+            fontWeight: 700,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: 'rgba(255,255,255,0.3)',
+            marginBottom: '24px',
+          }}>
+            スポンサーリンク
+          </p>
+
+          {/* Responsive row: wraps to column on small screens via flex-wrap */}
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: '40px',
+          }}>
+
+            {/* ── DMM FX ── */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+              <a
+                href="https://px.a8.net/svt/ejp?a8mat=4AZHWD+DGMV76+1WP2+6F9M9"
+                rel="nofollow noopener noreferrer"
+                target="_blank"
+              >
+                <img
+                  border="0"
+                  width="165"
+                  height="120"
+                  alt="DMM FX"
+                  src="https://www27.a8.net/svt/bgt?aid=260317021814&wid=001&eno=01&mid=s00000008903001079000&mc=1"
+                  style={{ borderRadius: '10px', display: 'block', transition: 'opacity 0.2s' }}
+                  onMouseOver={(e) => e.currentTarget.style.opacity = '0.8'}
+                  onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
+                />
+              </a>
+              <img border="0" width="1" height="1" src="https://www11.a8.net/0.gif?a8mat=4AZHWD+DGMV76+1WP2+6F9M9" alt="" style={{ position: 'absolute', opacity: 0 }} />
+              <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>DMM FX</span>
+            </div>
+
+            {/* ── moomoo証券 ── */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+              <a
+                href="https://j.jp.moomoo.com/0ACr1m"
+                rel="noopener noreferrer"
+                target="_blank"
+                style={{ textDecoration: 'none' }}
+              >
+                <div style={{
+                  width: '165px',
+                  height: '120px',
+                  borderRadius: '10px',
+                  background: 'linear-gradient(135deg, #f97316, #ef4444)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  boxShadow: '0 4px 20px rgba(249,115,22,0.25)',
+                }}
+                  onMouseOver={(e) => { e.currentTarget.style.opacity = '0.85'; e.currentTarget.style.transform = 'scale(1.03)' }}
+                  onMouseOut={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'scale(1)' }}
+                >
+                  <span style={{ fontSize: '22px', fontWeight: 900, color: '#fff', letterSpacing: '-0.5px' }}>moomoo</span>
+                  <span style={{
+                    fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.9)',
+                    background: 'rgba(0,0,0,0.25)', padding: '3px 10px', borderRadius: '20px', letterSpacing: '0.04em'
+                  }}>
+                    moomoo証券で投資を始める
+                  </span>
+                </div>
+              </a>
+              <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>moomoo証券</span>
+            </div>
+
+          </div>
+        </div>
+
+        {/* ── Copyright ── */}
+        <div style={{ textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-secondary)', paddingBottom: '40px' }}>
+          <p>© 2026 SNS Clipper Pro · AI切り抜き · YouTube対応</p>
+        </div>
       </footer>
+
     </div>
   )
 }
