@@ -473,21 +473,55 @@ function App() {
                 href="https://px.a8.net/svt/ejp?a8mat=4AZHWD+DGMV76+1WP2+6F9M9"
                 rel="nofollow noopener noreferrer"
                 target="_blank"
+                style={{ textDecoration: 'none' }}
               >
-                <img
-                  border="0"
-                  width="165"
-                  height="120"
-                  alt="DMM FX"
-                  src="https://www27.a8.net/svt/bgt?aid=260317021814&wid=001&eno=01&mid=s00000008903001079000&mc=1"
-                  style={{ borderRadius: '10px', display: 'block', transition: 'opacity 0.2s' }}
-                  onMouseOver={(e) => e.currentTarget.style.opacity = '0.8'}
-                  onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
-                />
+                <div style={{
+                  width: '165px',
+                  height: '120px',
+                  borderRadius: '10px',
+                  background: 'linear-gradient(135deg, #1a1a2e, #0f3460)',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  boxShadow: '0 4px 20px rgba(15,52,96,0.4)',
+                }}
+                  onMouseOver={(e) => { e.currentTarget.style.opacity = '0.85'; e.currentTarget.style.transform = 'scale(1.03)' }}
+                  onMouseOut={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'scale(1)' }}
+                >
+                  {/* A8 image as overlay — visible if loaded, invisible if blocked */}
+                  <img
+                    src="https://www27.a8.net/svt/bgt?aid=260317021814&wid=001&eno=01&mid=s00000008903001079000&mc=1"
+                    alt=""
+                    width="165"
+                    height="120"
+                    style={{
+                      position: 'absolute', top: 0, left: 0,
+                      width: '100%', height: '100%',
+                      objectFit: 'cover', borderRadius: '10px',
+                    }}
+                  />
+                  {/* Fallback content always visible underneath */}
+                  <span style={{ fontSize: '20px', fontWeight: 900, color: '#fff', letterSpacing: '-0.5px', position: 'relative', zIndex: 1, textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>DMM FX</span>
+                  <span style={{
+                    fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.9)',
+                    background: 'rgba(0,0,0,0.5)', padding: '3px 10px', borderRadius: '20px',
+                    letterSpacing: '0.04em', position: 'relative', zIndex: 1,
+                  }}>
+                    FX取引を始める
+                  </span>
+                </div>
               </a>
               <img border="0" width="1" height="1" src="https://www11.a8.net/0.gif?a8mat=4AZHWD+DGMV76+1WP2+6F9M9" alt="" style={{ position: 'absolute', opacity: 0 }} />
               <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>DMM FX</span>
             </div>
+
 
             {/* ── moomoo証券 ── */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
