@@ -375,6 +375,50 @@ function App() {
 
       </div>
 
+      {/* ── Half Banner 468x60 ── */}
+      <div style={{ margin: '24px 0', textAlign: 'center' }}>
+        <a
+          href="https://px.a8.net/svt/ejp?a8mat=4AZJGB+E80T0Y+1MWA+15OK29"
+          rel="nofollow noopener noreferrer"
+          target="_blank"
+          style={{ textDecoration: 'none', display: 'inline-block' }}
+        >
+          <div
+            style={{
+              position: 'relative', overflow: 'hidden',
+              width: '468px', maxWidth: '100%', height: '60px',
+              borderRadius: '10px',
+              background: 'linear-gradient(135deg, #1a0533, #2d0b5e, #1a0533)',
+              border: '1px solid rgba(180,100,255,0.25)',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '0 24px',
+              boxShadow: '0 4px 20px rgba(120,0,255,0.2)',
+              cursor: 'pointer', transition: 'all 0.2s',
+            }}
+            onMouseOver={(e) => { e.currentTarget.style.opacity = '0.88'; e.currentTarget.style.transform = 'scale(1.02)' }}
+            onMouseOut={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'scale(1)' }}
+          >
+            <img
+              src="https://www28.a8.net/svt/bgt?aid=260319035860&wid=001&eno=01&mid=s00000007633007001000&mc=1"
+              alt="" width="468" height="60"
+              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', borderRadius: '10px' }}
+            />
+            <span style={{ position: 'relative', zIndex: 1, fontSize: '15px', fontWeight: 800, color: '#fff', textShadow: '0 1px 6px rgba(0,0,0,0.9)' }}>
+              PR
+            </span>
+            <span style={{
+              position: 'relative', zIndex: 1,
+              background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.25)',
+              color: '#fff', fontWeight: 700, fontSize: '12px',
+              padding: '5px 16px', borderRadius: '30px',
+            }}>
+              詳しくはこちら →
+            </span>
+          </div>
+        </a>
+        <img border="0" width="1" height="1" src="https://www15.a8.net/0.gif?a8mat=4AZJGB+E80T0Y+1MWA+15OK29" alt="" style={{ position: 'absolute', opacity: 0 }} />
+      </div>
+
       {/* ── Footer Sponsor Section ── */}
       <footer style={{ marginTop: '60px' }}>
         <div style={{
