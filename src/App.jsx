@@ -310,6 +310,25 @@ function App() {
         )}
       </main>
 
+      {/* ── Leaderboard Banner ── */}
+      <div style={{ margin: '40px 0', textAlign: 'center', overflowX: 'hidden' }}>
+        <a
+          href="https://px.a8.net/svt/ejp?a8mat=4AZHWD+DHTQEQ+50+2HV61T"
+          rel="nofollow noopener noreferrer"
+          target="_blank"
+        >
+          <img
+            border="0"
+            width="728"
+            height="90"
+            alt=""
+            src="https://www27.a8.net/svt/bgt?aid=260317021816&wid=001&eno=01&mid=s00000000018015094000&mc=1"
+            style={{ maxWidth: '100%', borderRadius: '8px', display: 'inline-block' }}
+          />
+        </a>
+        <img border="0" width="1" height="1" src="https://www11.a8.net/0.gif?a8mat=4AZHWD+DHTQEQ+50+2HV61T" alt="" style={{ position: 'absolute', opacity: 0 }} />
+      </div>
+
       {/* ── Footer Sponsor Section ── */}
       <footer style={{ marginTop: '60px' }}>
         <div style={{
