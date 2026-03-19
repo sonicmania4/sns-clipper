@@ -175,11 +175,6 @@ function App() {
               onMouseOver={(e) => { e.currentTarget.style.transform = 'scale(1.04)' }}
               onMouseOut={(e) => { e.currentTarget.style.transform = 'scale(1)' }}
             >
-              <img
-                src="https://www27.a8.net/svt/bgt?aid=260317021814&wid=001&eno=01&mid=s00000008903001079000&mc=1"
-                alt="" width="165" height="120"
-                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', borderRadius: '12px' }}
-              />
               <span style={{ fontSize: '22px', fontWeight: 900, color: '#fff', position: 'relative', zIndex: 1, textShadow: '0 1px 6px rgba(0,0,0,0.9)' }}>DMM FX</span>
               <span style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.95)', background: 'rgba(0,0,0,0.55)', padding: '3px 12px', borderRadius: '20px', position: 'relative', zIndex: 1 }}>
                 FX取引を始める
@@ -349,13 +344,7 @@ function App() {
             onMouseOver={(e) => { e.currentTarget.style.opacity = '0.88'; e.currentTarget.style.transform = 'scale(1.01)' }}
             onMouseOut={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'scale(1)' }}
           >
-            {/* A8 image overlay */}
-            <img
-              src="https://www27.a8.net/svt/bgt?aid=260317021816&wid=001&eno=01&mid=s00000000018015094000&mc=1"
-              alt="" width="728" height="90"
-              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', borderRadius: '12px' }}
-            />
-            {/* Fallback content (always visible underneath image overlay) */}
+            {/* Fallback content (always visible) */}
             <div style={{ position: 'relative', zIndex: 1 }}>
               <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.12em', marginBottom: '4px', textTransform: 'uppercase' }}>PR</p>
               <p style={{ fontSize: '18px', fontWeight: 800, color: '#fff', textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}>お名前.com - 国内最大級のドメイン登録</p>
@@ -398,11 +387,6 @@ function App() {
             onMouseOver={(e) => { e.currentTarget.style.opacity = '0.88'; e.currentTarget.style.transform = 'scale(1.02)' }}
             onMouseOut={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'scale(1)' }}
           >
-            <img
-              src="https://www28.a8.net/svt/bgt?aid=260319035860&wid=001&eno=01&mid=s00000007633007001000&mc=1"
-              alt="" width="468" height="60"
-              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', borderRadius: '10px' }}
-            />
             <span style={{ position: 'relative', zIndex: 1, fontSize: '15px', fontWeight: 800, color: '#fff', textShadow: '0 1px 6px rgba(0,0,0,0.9)' }}>
               電話加入権ドットコム - 固定電話・ネットを最短当日手配
             </span>
@@ -466,11 +450,6 @@ function App() {
                   onMouseOver={(e) => { e.currentTarget.style.opacity = '0.85'; e.currentTarget.style.transform = 'scale(1.03)' }}
                   onMouseOut={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'scale(1)' }}
                 >
-                  <img
-                    src="https://www27.a8.net/svt/bgt?aid=260317021814&wid=001&eno=01&mid=s00000008903001079000&mc=1"
-                    alt="" width="165" height="120"
-                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', borderRadius: '10px' }}
-                  />
                   <span style={{ fontSize: '20px', fontWeight: 900, color: '#fff', position: 'relative', zIndex: 1, textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>DMM FX</span>
                   <span style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.9)', background: 'rgba(0,0,0,0.5)', padding: '3px 10px', borderRadius: '20px', position: 'relative', zIndex: 1 }}>
                     FX取引を始める
