@@ -358,7 +358,7 @@ function App() {
             {/* Fallback content (always visible underneath image overlay) */}
             <div style={{ position: 'relative', zIndex: 1 }}>
               <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.12em', marginBottom: '4px', textTransform: 'uppercase' }}>PR</p>
-              <p style={{ fontSize: '18px', fontWeight: 800, color: '#fff', textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}>A8.net アフィリエイト広告</p>
+              <p style={{ fontSize: '18px', fontWeight: 800, color: '#fff', textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}>お名前.com - 国内最大級のドメイン登録</p>
             </div>
             <span style={{
               position: 'relative', zIndex: 1,
@@ -404,7 +404,7 @@ function App() {
               style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', borderRadius: '10px' }}
             />
             <span style={{ position: 'relative', zIndex: 1, fontSize: '15px', fontWeight: 800, color: '#fff', textShadow: '0 1px 6px rgba(0,0,0,0.9)' }}>
-              PR
+              電話加入権ドットコム - 固定電話・ネットを最短当日手配
             </span>
             <span style={{
               position: 'relative', zIndex: 1,
