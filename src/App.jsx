@@ -153,25 +153,41 @@ function App() {
         <p className="subtitle">爆速。無劣化。切り抜き動画の革命。</p>
       </header>
 
-      {/* ── Affiliate Banner ── */}
-      <div className="flex justify-center mb-8">
-        <div className="glass-panel" style={{ padding: '16px', display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+      {/* ── Top DMM FX Banner ── */}
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '32px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
           <a
             href="https://px.a8.net/svt/ejp?a8mat=4AZHWD+DGMV76+1WP2+6F9M9"
             rel="nofollow noopener noreferrer"
             target="_blank"
+            style={{ textDecoration: 'none' }}
           >
-            <img
-              border="0"
-              width="165"
-              height="120"
-              alt=""
-              src="https://www27.a8.net/svt/bgt?aid=260317021814&wid=001&eno=01&mid=s00000008903001079000&mc=1"
-              style={{ borderRadius: '8px', display: 'block' }}
-            />
+            <div
+              style={{
+                width: '165px', height: '120px', borderRadius: '12px',
+                background: 'linear-gradient(135deg, #1a1a2e, #0f3460)',
+                border: '1px solid rgba(255,255,255,0.15)',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                gap: '10px', cursor: 'pointer', transition: 'all 0.2s',
+                position: 'relative', overflow: 'hidden',
+                boxShadow: '0 4px 24px rgba(15,52,96,0.5)',
+              }}
+              onMouseOver={(e) => { e.currentTarget.style.transform = 'scale(1.04)' }}
+              onMouseOut={(e) => { e.currentTarget.style.transform = 'scale(1)' }}
+            >
+              <img
+                src="https://www27.a8.net/svt/bgt?aid=260317021814&wid=001&eno=01&mid=s00000008903001079000&mc=1"
+                alt="" width="165" height="120"
+                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', borderRadius: '12px' }}
+              />
+              <span style={{ fontSize: '22px', fontWeight: 900, color: '#fff', position: 'relative', zIndex: 1, textShadow: '0 1px 6px rgba(0,0,0,0.9)' }}>DMM FX</span>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.95)', background: 'rgba(0,0,0,0.55)', padding: '3px 12px', borderRadius: '20px', position: 'relative', zIndex: 1 }}>
+                FX取引を始める
+              </span>
+            </div>
           </a>
           <img border="0" width="1" height="1" src="https://www11.a8.net/0.gif?a8mat=4AZHWD+DGMV76+1WP2+6F9M9" alt="" style={{ position: 'absolute', opacity: 0 }} />
-          <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)', letterSpacing: '0.1em' }}>ADVERTISEMENT</span>
+          <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', letterSpacing: '0.08em' }}>PR</span>
         </div>
       </div>
 
@@ -311,22 +327,52 @@ function App() {
       </main>
 
       {/* ── Leaderboard Banner ── */}
-      <div style={{ margin: '40px 0', textAlign: 'center', overflowX: 'hidden' }}>
+      <div style={{ margin: '40px 0', textAlign: 'center' }}>
         <a
           href="https://px.a8.net/svt/ejp?a8mat=4AZHWD+DHTQEQ+50+2HV61T"
           rel="nofollow noopener noreferrer"
           target="_blank"
+          style={{ textDecoration: 'none', display: 'block' }}
         >
-          <img
-            border="0"
-            width="728"
-            height="90"
-            alt=""
-            src="https://www27.a8.net/svt/bgt?aid=260317021816&wid=001&eno=01&mid=s00000000018015094000&mc=1"
-            style={{ maxWidth: '100%', borderRadius: '8px', display: 'inline-block' }}
-          />
+          <div
+            style={{
+              position: 'relative', overflow: 'hidden',
+              maxWidth: '728px', width: '100%', height: '90px',
+              margin: '0 auto', borderRadius: '12px',
+              background: 'linear-gradient(135deg, #0a0a1a, #0d1b4b, #1a0a3d)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '0 32px',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
+              cursor: 'pointer', transition: 'all 0.2s',
+            }}
+            onMouseOver={(e) => { e.currentTarget.style.opacity = '0.88'; e.currentTarget.style.transform = 'scale(1.01)' }}
+            onMouseOut={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'scale(1)' }}
+          >
+            {/* A8 image overlay */}
+            <img
+              src="https://www27.a8.net/svt/bgt?aid=260317021816&wid=001&eno=01&mid=s00000000018015094000&mc=1"
+              alt="" width="728" height="90"
+              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', borderRadius: '12px' }}
+            />
+            {/* Fallback content (always visible underneath image overlay) */}
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.12em', marginBottom: '4px', textTransform: 'uppercase' }}>PR</p>
+              <p style={{ fontSize: '18px', fontWeight: 800, color: '#fff', textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}>A8.net アフィリエイト広告</p>
+            </div>
+            <span style={{
+              position: 'relative', zIndex: 1,
+              background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)',
+              color: '#fff', fontWeight: 700, fontSize: '13px',
+              padding: '8px 20px', borderRadius: '30px',
+              backdropFilter: 'blur(4px)',
+            }}>
+              詳しくはこちら →
+            </span>
+          </div>
         </a>
         <img border="0" width="1" height="1" src="https://www11.a8.net/0.gif?a8mat=4AZHWD+DHTQEQ+50+2HV61T" alt="" style={{ position: 'absolute', opacity: 0 }} />
+
       </div>
 
       {/* ── Footer Sponsor Section ── */}
