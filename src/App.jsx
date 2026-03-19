@@ -378,7 +378,7 @@ function App() {
       {/* ── Half Banner 468x60 ── */}
       <div style={{ margin: '24px 0', textAlign: 'center' }}>
         <a
-          href="https://px.a8.net/svt/ejp?a8mat=4AZJGB+E80T0Y+1MWA+15OK29"
+          href="https://px.a8.net/svt/ejp?a8mat=4AZJGB+E80T0Y+1MWA+15PUCY"
           rel="nofollow noopener noreferrer"
           target="_blank"
           style={{ textDecoration: 'none', display: 'inline-block' }}
@@ -416,7 +416,7 @@ function App() {
             </span>
           </div>
         </a>
-        <img border="0" width="1" height="1" src="https://www15.a8.net/0.gif?a8mat=4AZJGB+E80T0Y+1MWA+15OK29" alt="" style={{ position: 'absolute', opacity: 0 }} />
+        <img border="0" width="1" height="1" src="https://www15.a8.net/0.gif?a8mat=4AZJGB+E80T0Y+1MWA+15PUCY" alt="" style={{ position: 'absolute', opacity: 0 }} />
       </div>
 
       {/* ── Footer Sponsor Section ── */}
